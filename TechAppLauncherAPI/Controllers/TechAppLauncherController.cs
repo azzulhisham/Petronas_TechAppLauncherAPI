@@ -30,10 +30,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetLauncherVersion")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public LauncherVersion GetLauncherVersion()
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetLauncherVersion()
         {
-            return _sqlDataAccess.GetLauncherVersion();
+            var result = _sqlDataAccess.GetLauncherVersion();
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -43,10 +44,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetAllUserDownloadSessions")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the list of records when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public IEnumerable<UserDownloadSession> GetAllUserDownloadSessions()
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetAllUserDownloadSessions()
         {
-            return _sqlDataAccess.GetUserDownloadSessions();
+            var result = _sqlDataAccess.GetUserDownloadSessions();
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -57,10 +59,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetUserDownloadSessionsByUsername/{userName}")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the list of records when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public IEnumerable<UserDownloadSession> GetUserDownloadSessionsByUserame(string userName)
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetUserDownloadSessionsByUserame(string userName)
         {
-            return _sqlDataAccess.GetUserDownloadSessionsByUser(userName.Replace("_", "."));
+            var result = _sqlDataAccess.GetUserDownloadSessionsByUser(userName.Replace("_", "."));
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -71,10 +74,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetUserDownloadSession/{id}")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public UserDownloadSession GetUserDownloadSession(long id)
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetUserDownloadSession(long id)
         {
-            return _sqlDataAccess.GetUserDownloadSessionById(id);
+            var result = _sqlDataAccess.GetUserDownloadSessionById(id);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -85,10 +89,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetUserDownloadSessionBySession")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public UserDownloadSession GetUserDownloadSessionBySession([FromUri] UserDownloadSession userDownloadSession)
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetUserDownloadSessionBySession([FromUri] UserDownloadSession userDownloadSession)
         {
-            return _sqlDataAccess.GetUserDownloadSession(userDownloadSession);
+            var result = _sqlDataAccess.GetUserDownloadSession(userDownloadSession);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -99,10 +104,18 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPost]
         [Route("api/TechAppLauncher/AddUserDownloadSession")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public UserDownloadSession AddUserDownloadSession([FromBody] UserDownloadSession userDownloadSession)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage AddUserDownloadSession([FromBody] UserDownloadSession userDownloadSession)
         {
-            return _sqlDataAccess.AddUserDownloadSession(userDownloadSession);
+            if (string.IsNullOrEmpty(userDownloadSession.AppUID.Trim()) || 
+                string.IsNullOrEmpty(userDownloadSession.Title.Trim()) ||
+                string.IsNullOrEmpty(userDownloadSession.UserName.Trim()))
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
+            }
+
+            var result = _sqlDataAccess.AddUserDownloadSession(userDownloadSession);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -112,10 +125,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetlauncherAppConfig")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error Occur!")]
-        public AppConfig GetlauncherAppConfig()
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetlauncherAppConfig()
         {
-            return _sqlDataAccess.GetAppConfig();
+            var result = _sqlDataAccess.GetAppConfig();
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -127,15 +141,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppVerMajorNumber")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public LauncherVersion UpdateAppVerMajorNumber([FromBody] int majorVersionNumber)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppVerMajorNumber([FromBody] int majorVersionNumber)
         {
             if (majorVersionNumber < 0)
             {
-                throw new Exception("Bad Request - Invalid Version number!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Version number!");
             }
 
-            return _sqlDataAccess.UpdateLauncherMajorNumber(majorVersionNumber);
+            var result = _sqlDataAccess.UpdateLauncherMajorNumber(majorVersionNumber);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -147,15 +162,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppVerMajorRevisionNumber")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public LauncherVersion UpdateAppVerMajorRevisionNumber([FromBody] int majorRevisionVersionNumber)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppVerMajorRevisionNumber([FromBody] int majorRevisionVersionNumber)
         {
             if (majorRevisionVersionNumber < 0)
             {
-                throw new Exception("Bad Request - Invalid Version number!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest,"Invalid Version number!");
             }
 
-            return _sqlDataAccess.UpdateLauncherMajorRevNumber(majorRevisionVersionNumber);
+            var result = _sqlDataAccess.UpdateLauncherMajorRevNumber(majorRevisionVersionNumber);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -167,15 +183,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppVerMinorNumber")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public LauncherVersion UpdateAppVerMinorNumber([FromBody] int minorVersionNumber)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppVerMinorNumber([FromBody] int minorVersionNumber)
         {
             if (minorVersionNumber < 0)
             {
-                throw new Exception("Bad Request - Invalid Version number!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Version number!");
             }
 
-            return _sqlDataAccess.UpdateLauncherMinorNumber(minorVersionNumber);
+            var result = _sqlDataAccess.UpdateLauncherMinorNumber(minorVersionNumber);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -187,15 +204,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppVerMinorRevisionNumber")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public LauncherVersion UpdateAppVerMinorRevisionNumber([FromBody] int minorRevisionVersionNumber)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppVerMinorRevisionNumber([FromBody] int minorRevisionVersionNumber)
         {
             if (minorRevisionVersionNumber < 0)
             {
-                throw new Exception("Bad Request - Invalid Version number!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Version number!");
             }
 
-            return _sqlDataAccess.UpdateLauncherMinorRevNumber(minorRevisionVersionNumber);
+            var result = _sqlDataAccess.UpdateLauncherMinorRevNumber(minorRevisionVersionNumber);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -206,15 +224,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppStoreServerDomainName")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public AppConfig UpdateAppStoreServerDomainName([FromBody] string domainName)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppStoreServerDomainName([FromBody] string domainName)
         {
             if (string.IsNullOrEmpty(domainName))
             {
-                throw new Exception("Bad Request - Invalid Domain name!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Domain name!");
             }
 
-            return _sqlDataAccess.UpdateServerDomainName(domainName);
+            var result = _sqlDataAccess.UpdateServerDomainName(domainName);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -225,15 +244,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppStoreServerUserName")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public AppConfig UpdateAppStoreServerUserName([FromBody] string userName)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppStoreServerUserName([FromBody] string userName)
         {
             if (string.IsNullOrEmpty(userName))
             {
-                throw new Exception("Bad Request - Invalid Username!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Username!");
             }
 
-            return _sqlDataAccess.UpdateServerUserName(userName);
+            var result = _sqlDataAccess.UpdateServerUserName(userName);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -244,15 +264,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppStoreServerPassword")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Bad Request - Invalid Data!")]
-        public AppConfig UpdateAppStoreServerPassword([FromBody] string password)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppStoreServerPassword([FromBody] string password)
         {
             if (string.IsNullOrEmpty(password))
             {
-                throw new Exception("Bad Request - Invalid Password!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Password!");
             }
 
-            return _sqlDataAccess.UpdateServerPwd(password);
+            var result = _sqlDataAccess.UpdateServerPwd(password);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -263,10 +284,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetAllAppDistributionReferenceDetails")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the entire list of AppDistRefDet when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error Occur!")]
-        public IEnumerable<AppDistRefDet> GetAllAppDistributionReferenceDetails()
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetAllAppDistributionReferenceDetails()
         {
-            return _sqlDataAccess.GetAllAppDistRefDet();
+            var result = _sqlDataAccess.GetAllAppDistRefDet();
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -277,10 +299,11 @@ namespace TechAppLauncherAPI.Controllers
         [HttpGet]
         [Route("api/TechAppLauncher/GetAppDistributionReferenceDetailByAppUID")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record by the Id when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Error Occur!")]
-        public AppDistRefDet GetAppDistributionReferenceDetailByAppUID(string appUID)
+        [SwaggerResponse(HttpStatusCode.NotFound, "No data available!")]
+        public HttpResponseMessage GetAppDistributionReferenceDetailByAppUID(string appUID)
         {
-            return _sqlDataAccess.GetAppDistRefDetByAppUID(appUID);
+            var result = _sqlDataAccess.GetAppDistRefDetByAppUID(appUID);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.NotFound, "No data available!");
         }
 
         /// <summary>
@@ -292,15 +315,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppDistributionReferenceDetailByAppUID")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record by the AppUID when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Invalid Data!")]
-        public AppDistRefDet UpdateAppDistributionReferenceDetailByAppUID([FromBody] AppDistRefDet appDistRefDet)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppDistributionReferenceDetailByAppUID([FromBody] AppDistRefDet appDistRefDet)
         {
             if (string.IsNullOrEmpty(appDistRefDet.AppUID) || string.IsNullOrWhiteSpace(appDistRefDet.AppUID))
             {
-                throw new Exception("Bad Request - Invalid Data!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid AppUID!");
             }
 
-            return _sqlDataAccess.UpdateAppDistRefDetByAppUID(appDistRefDet);
+            var result = _sqlDataAccess.UpdateAppDistRefDetByAppUID(appDistRefDet);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -312,15 +336,16 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPatch]
         [Route("api/TechAppLauncher/UpdateAppDistributionReferenceDetailById")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record by the Id when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Invalid Data!")]
-        public AppDistRefDet UpdateAppDistributionReferenceDetailById([FromBody] AppDistRefDet appDistRefDet)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage UpdateAppDistributionReferenceDetailById([FromBody] AppDistRefDet appDistRefDet)
         {
             if (appDistRefDet == null || appDistRefDet.Id == 0)
             {
-                throw new Exception("Bad Request - Invalid Data!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Id!");
             }
 
-            return _sqlDataAccess.UpdateAppDistRefDetById(appDistRefDet);
+            var result = _sqlDataAccess.UpdateAppDistRefDetById(appDistRefDet);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -332,18 +357,19 @@ namespace TechAppLauncherAPI.Controllers
         [HttpPost]
         [Route("api/TechAppLauncher/AddAppDistributionReferenceDetail")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the specific record when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Invalid Data!")]
-        public AppDistRefDet AddAppDistributionReferenceDetail([FromBody] AppDistRefDet appDistRefDet)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage AddAppDistributionReferenceDetail([FromBody] AppDistRefDet appDistRefDet)
         {
             if (appDistRefDet == null || 
                 string.IsNullOrEmpty(appDistRefDet.AppUID.Trim()) || 
                 string.IsNullOrEmpty(appDistRefDet.LinkID.Trim()) ||
                 string.IsNullOrEmpty(appDistRefDet.AgentName.Trim()))
             {
-                throw new Exception("Bad Request - Invalid Data!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Data!");
             }
 
-            return _sqlDataAccess.AddAppDistRefDet(appDistRefDet);
+            var result = _sqlDataAccess.AddAppDistRefDet(appDistRefDet);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
 
         /// <summary>
@@ -355,17 +381,18 @@ namespace TechAppLauncherAPI.Controllers
         [HttpDelete]
         [Route("api/TechAppLauncher/DeleteAppDistributionReferenceDetail")]
         [SwaggerResponse(HttpStatusCode.OK, "Returns the entire list of the table when success. Otherwise returns null.")]
-        [SwaggerResponse(HttpStatusCode.InternalServerError, "Invalid Data!")]
-        public IEnumerable<AppDistRefDet> DeleteAppDistributionReferenceDetail([FromBody] AppDistRefDet appDistRefDet)
+        [SwaggerResponse(HttpStatusCode.BadRequest, "Invalid Data!")]
+        public HttpResponseMessage DeleteAppDistributionReferenceDetail([FromBody] AppDistRefDet appDistRefDet)
         {
             if (appDistRefDet == null || 
                 string.IsNullOrEmpty(appDistRefDet.AppUID.Trim()) ||
                 string.IsNullOrEmpty(appDistRefDet.LinkID.Trim()))
             {
-                throw new Exception("Bad Request - Invalid Data!");
+                return Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid Data!");
             }
 
-            return _sqlDataAccess.DeleteAppDistRefDet(appDistRefDet);
+            var result = _sqlDataAccess.DeleteAppDistRefDet(appDistRefDet);
+            return result != null ? Request.CreateResponse(HttpStatusCode.OK, result) : Request.CreateResponse(HttpStatusCode.BadRequest, "Invalid data!");
         }
     }
 }
